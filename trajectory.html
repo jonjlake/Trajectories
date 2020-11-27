@@ -1,0 +1,111 @@
+<html>
+<head>
+<script>
+  function mkEl(type){
+      return document.createElement(type);
+  }
+  
+  function O(obj){
+      //alert("getting element " + obj);
+      return typeof obj == "object" ? obj : 
+        document.getElementById(obj);
+  }
+  
+  var ins=["x0","vx0","y0","vy0","ay0","xf"];
+  var outs=["vxf","axf","yf","vyf","ayf","tf"];
+  
+  /*function genInput(){
+      for(var i=0;i<ins.length;i++){
+          var l=mkEl("label");
+          l.innerHTML=ins[i];
+          var inp=mkEl("input");
+          inp.id=ins[i];
+          inp.value=0;
+          l.appendChild(inp);
+          document.body.appendChild(l);
+          document.body.appendChild(mkEl("br"));
+      }
+      //alert(10);
+  }*/
+  
+  function genSet(setName){
+    var div=mkEl("div");
+    div.style.borderColor="black";
+    div.style.borderStyle ="solid"
+    div.style.borderWidth="1px"
+        for(var i=0;i<setName.length;i++){
+          var l=mkEl("label");
+          l.innerHTML=setName[i];
+          var inp=mkEl("input");
+          inp.id=setName[i];
+          inp.value=0;
+          l.appendChild(inp);
+          //document.body.appendChild(l);
+          //document.body.appendChild(mkEl("br"));
+          div.appendChild(l);
+          div.appendChild(mkEl("br"));
+      }
+      document.body.appendChild(div);
+  }
+  
+  function genElements(){
+      genSet(ins);
+      genSet(outs);
+  }
+  
+  function getInVals(){
+      var inVals={};
+      for (var i=0;i<ins.length;i++){
+          inVals[ins[i]]=parseInt(O(ins[i]).value);
+      }
+      return inVals;
+  }
+  
+  function calculateResults(){
+      try{
+      var inVals = getInVals();
+      var outVals = {};
+      for(var i=0;i<outs.length;i++){
+          outVals[outs[i]] = 0;
+      }
+      //outVals.xf = inVals.x0;
+      // t = dx/vx 
+      var t = (inVals.xf -inVals.x0) / inVals.vx0;
+      outVals.tf = t;
+      //alert("flight time: " + t);
+      outVals.yf = inVals.y0 + inVals.vy0 * t + inVals.ay0 
+        * t * t /2;
+      outVals.yf *= 12;
+      setOutVals(outVals);
+      }catch(e){
+          alert(e);
+      }
+  }
+  
+  function setOutVals(outObj){
+      //alert(JSON.stringify(outObj));
+      for (var i=0;i<outs.length;i++){
+          var el=O(outs[i]);
+          //alert(JSON.stringify(el));
+          el.value=outObj[outs[i]];
+      }
+  }
+ 
+</script>
+</head>
+<body>
+<script>
+
+try{
+  //genInput();
+  genElements();
+  //calculateResults();
+}catch(e){
+  alert(e);
+}
+</script>
+<button onclick="calculateResults()">
+  Calc
+  </button>
+</body>
+</html>
