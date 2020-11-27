@@ -6,27 +6,12 @@
   }
   
   function O(obj){
-      //alert("getting element " + obj);
       return typeof obj == "object" ? obj : 
         document.getElementById(obj);
   }
   
-  var ins=["x0","vx0","y0","vy0","ay0","xf"];
-  var outs=["vxf","axf","yf","vyf","ayf","tf"];
-  
-  /*function genInput(){
-      for(var i=0;i<ins.length;i++){
-          var l=mkEl("label");
-          l.innerHTML=ins[i];
-          var inp=mkEl("input");
-          inp.id=ins[i];
-          inp.value=0;
-          l.appendChild(inp);
-          document.body.appendChild(l);
-          document.body.appendChild(mkEl("br"));
-      }
-      //alert(10);
-  }*/
+  var ins=["xSight","v0"];
+  var outs=["vxf","vyf","tf"];
   
   function genSet(setName){
     var div=mkEl("div");
@@ -40,8 +25,6 @@
           inp.id=setName[i];
           inp.value=0;
           l.appendChild(inp);
-          //document.body.appendChild(l);
-          //document.body.appendChild(mkEl("br"));
           div.appendChild(l);
           div.appendChild(mkEl("br"));
       }
@@ -61,6 +44,41 @@
       return inVals;
   }
   
+  function cubic(x){
+    return x^3+x^2-2;
+  }
+  
+  function zerosolve(){
+    var x0=1;
+    var x1=2;
+    var y0=cubic(x0);
+    var y1=cubic(x1);
+    var limit=1000;
+    var tol=0.001;
+    var i=0;
+    
+    var dy=y1-y0;
+    if(dy<==tol) return {root: x1,
+      iters:i, limit:limit, tol:tol};
+    
+    for(var i=0;i<limit;i++){
+      dx=x1-x0;
+      y0=y1;
+      x1=x0-dy/dx*x0;
+      y1=cubic(x1);
+      dy=y1-y0;
+      if (dy <== tol) return {
+        root: x1, iters:i, 
+        limit:limit, tol:tol};
+    }
+    return { root: x1,
+      iters:i, limit:limit, tol:tol};
+  }
+  
+  function printZeroSolve(){
+    solveRes=zerosolve();
+    alert("zerosolve: " + JSON.stringify(solveRes));
+  
   function calculateResults(){
       try{
       var inVals = getInVals();
@@ -68,14 +86,30 @@
       for(var i=0;i<outs.length;i++){
           outVals[outs[i]] = 0;
       }
-      //outVals.xf = inVals.x0;
-      // t = dx/vx 
-      var t = (inVals.xf -inVals.x0) / inVals.vx0;
-      outVals.tf = t;
+      var ay=-32.2;
+      // yf=y0+vy0t+ayt^2/2
+      // yf=y0 for 0 drop sighting
+      // vy0=-ayt^2/2
+      // vsin(th)=-ay t^2/2
+      
+      // xf=vx0t = vcos(th)t
+      
+      // vsin(th)=-ay (xf/(vcos(th)))^2/2
+      // v^3sin(th)cos^2(th)=-ay xf^2/2
+      
+      // cos^2(th)=(1+cos(2th))/2
+      // v^3 (sin(th)+sin(th)cos(2th))=-ay xf^2/2
+      // 2sin(th)cos(ph) = sin(th+ph) + sin(th-ph)
+      // v^3 (sin(th) + sin(3th)/2 + sin(-th)/2 ) =-ay xf^2/2
+      // v^3(sin(th)/2+sin(3th)/2 = -ay xf^2/2
+      
+      outVals.vyf=inVals.v0*Math.sqrt(1/(1+(1/(ay*inVals.xSight)^2)));
+      //var t = (inVals.xf -inVals.x0) / inVals.vx0;
+      //outVals.tf = t;
       //alert("flight time: " + t);
-      outVals.yf = inVals.y0 + inVals.vy0 * t + inVals.ay0 
-        * t * t /2;
-      outVals.yf *= 12;
+      //outVals.yf = inVals.y0 + inVals.vy0 * t + inVals.ay0 
+        //* t * t /2;
+      //outVals.yf *= 12;
       setOutVals(outVals);
       }catch(e){
           alert(e);
@@ -97,9 +131,7 @@
 <script>
 
 try{
-  //genInput();
-  genElements();
-  //calculateResults();
+  //genElements();
 }catch(e){
   alert(e);
 }
@@ -107,5 +139,8 @@ try{
 <button onclick="calculateResults()">
   Calc
   </button>
+<button onclick="printZeroSolve()">
+Zero Solve
+</button>
 </body>
 </html>
